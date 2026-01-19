@@ -45,10 +45,7 @@ export const useToggleTodo: () => UseMutationResult<
   return useMutation({
     mutationFn: toggleTodo,
     onSuccess: (newTodo) =>
-      queryClient.setQueryData<Todo[]>([QUERY_KEYS.TODOS], (oldTodos) => [
-        ...(oldTodos as Todo[]),
-        newTodo,
-      ]),
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TODOS] }),
   });
 };
 

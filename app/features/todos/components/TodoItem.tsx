@@ -3,6 +3,7 @@ import {
   useDeleteTodo,
   useToggleTodo,
 } from "@/app/features/todos/hooks/useTodos";
+import { cn } from "@/app/utils/cn";
 
 type Props = {
   todo: Todo;
@@ -13,20 +14,22 @@ export const TodoItem = ({ todo }: Props) => {
   const deleteTodoMutation = useDeleteTodo();
   return (
     <li className="flex justify-between items-center mb-2">
-      <span
+      <button
         onClick={() => toggleTodoMutation.mutate(todo.id)}
-        style={{
-          textDecoration: todo.completed ? "line-through" : "none",
-          cursor: "pointer",
-        }}
+        disabled={toggleTodoMutation.isPending}
+        className={cn(
+          "cursor-pointer",
+          todo.completed ? "line-through text-gray-500" : "",
+        )}
       >
         {todo.title}
-      </span>
+      </button>
       <button
         onClick={() => deleteTodoMutation.mutate(todo.id)}
         className="text-red-500"
+        disabled={deleteTodoMutation.isPending}
       >
-        Delete
+        {deleteTodoMutation.isPending ? "Deleting..." : "Delete"}
       </button>
     </li>
   );
