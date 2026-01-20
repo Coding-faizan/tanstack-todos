@@ -95,8 +95,8 @@ export const useDeleteTodo: () => UseMutationResult<
 > = () => {
   return useMutation({
     mutationFn: deleteTodo,
-    onMutate(variables, context) {
-      context.client.cancelQueries({ queryKey: [QUERY_KEYS.TODOS] });
+    async onMutate(variables, context) {
+      await context.client.cancelQueries({ queryKey: [QUERY_KEYS.TODOS] });
 
       const previousTodos = context.client.getQueryData([QUERY_KEYS.TODOS]);
 
