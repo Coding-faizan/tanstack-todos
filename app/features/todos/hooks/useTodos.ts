@@ -1,7 +1,8 @@
+"use client";
+
 import {
   useQuery,
   useMutation,
-  useQueryClient,
   UseQueryResult,
   UseMutationResult,
 } from "@tanstack/react-query";
@@ -9,7 +10,7 @@ import {
 import { fetchTodos, addTodo, toggleTodo, deleteTodo } from "@/app/api/todos";
 
 import { QUERY_KEYS } from "@/app/constants/queryKeys";
-import { Todo } from "@/app/features/todos/todos.types";
+import { Todo } from "@/app/features/todos/types/todos.types";
 
 export const useTodos: () => UseQueryResult<Todo[], Error> = () => {
   return useQuery<Todo[]>({
@@ -57,11 +58,32 @@ export const useToggleTodo: () => UseMutationResult<
   number,
   unknown
 > = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: toggleTodo,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TODOS] }),
+    async onMutate(variables, context) {
+      await context.client.cancelQueries({ queryKey: [QUERY_KEYS.TODOS] });
+      const previousTodos = context.client.getQueryData([QUERY_KEYS.TODOS]);
+
+      context.client.setQueryData<Todo[]>([QUERY_KEYS.TODOS], (old) =>
+        old?.map((todo) =>
+          todo.id === variables
+            ? { ...todo, completed: !todo.completed }
+            : todo,
+        ),
+      );
+
+      return { previousTodos };
+    },
+    onSettled: (newTodo, error, variables, onMutateResult, context) => {
+      if (error) {
+        context.client.setQueryData(
+          [QUERY_KEYS.TODOS],
+          onMutateResult?.previousTodos,
+        );
+        return;
+      }
+      context.client.invalidateQueries({ queryKey: [QUERY_KEYS.TODOS] });
+    },
   });
 };
 
@@ -71,10 +93,28 @@ export const useDeleteTodo: () => UseMutationResult<
   number,
   unknown
 > = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteTodo,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TODOS] }),
+    onMutate(variables, context) {
+      context.client.cancelQueries({ queryKey: [QUERY_KEYS.TODOS] });
+
+      const previousTodos = context.client.getQueryData([QUERY_KEYS.TODOS]);
+
+      context.client.setQueryData<Todo[]>([QUERY_KEYS.TODOS], (old) =>
+        old?.filter((todo) => todo.id !== variables),
+      );
+
+      return { previousTodos };
+    },
+    onSettled: (newTodo, error, variables, onMutateResult, context) => {
+      if (error) {
+        context.client.setQueryData(
+          [QUERY_KEYS.TODOS],
+          onMutateResult?.previousTodos,
+        );
+        return;
+      }
+      context.client.invalidateQueries({ queryKey: [QUERY_KEYS.TODOS] });
+    },
   });
 };
