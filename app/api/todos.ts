@@ -1,4 +1,4 @@
-import { Todo } from "@/app/features/todos/todos.types";
+import { Todo } from "@/app/features/todos/types/todos.types";
 
 // Mock data
 let todos: Todo[] = [

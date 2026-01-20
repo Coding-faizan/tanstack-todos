@@ -1,4 +1,4 @@
-import { Todo } from "@/app/features/todos/todos.types";
+import { Todo } from "@/app/features/todos/types/todos.types";
 import {
   useDeleteTodo,
   useToggleTodo,
@@ -12,10 +12,19 @@ type Props = {
 export const TodoItem = ({ todo }: Props) => {
   const toggleTodoMutation = useToggleTodo();
   const deleteTodoMutation = useDeleteTodo();
+
+  const handleToggle = () => {
+    toggleTodoMutation.mutate(todo.id);
+  };
+
+  const handleDelete = () => {
+    deleteTodoMutation.mutate(todo.id);
+  };
+
   return (
     <li className="flex justify-between items-center mb-2">
       <button
-        onClick={() => toggleTodoMutation.mutate(todo.id)}
+        onClick={handleToggle}
         disabled={toggleTodoMutation.isPending}
         className={cn(
           "cursor-pointer",
@@ -25,7 +34,7 @@ export const TodoItem = ({ todo }: Props) => {
         {todo.title}
       </button>
       <button
-        onClick={() => deleteTodoMutation.mutate(todo.id)}
+        onClick={handleDelete}
         className="text-red-500"
         disabled={deleteTodoMutation.isPending}
       >

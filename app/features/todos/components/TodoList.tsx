@@ -1,3 +1,5 @@
+"use client";
+
 import { useTodos } from "@/app/features/todos/hooks/useTodos";
 import { TodoItem } from "./TodoItem";
 
