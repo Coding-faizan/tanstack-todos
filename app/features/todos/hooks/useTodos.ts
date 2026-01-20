@@ -21,17 +21,33 @@ export const useTodos: () => UseQueryResult<Todo[], Error> = () => {
 export const useAddTodo: () => UseMutationResult<
   Todo,
   Error,
-  string,
+  Todo,
   unknown
 > = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: addTodo,
-    onSuccess: (newTodo) =>
-      queryClient.setQueryData<Todo[]>([QUERY_KEYS.TODOS], (oldTodos) => [
-        ...(oldTodos as Todo[]),
-        newTodo,
-      ]),
+    async onMutate(variables, context) {
+      await context.client.cancelQueries({ queryKey: [QUERY_KEYS.TODOS] });
+
+      const previousTodos = context.client.getQueryData([QUERY_KEYS.TODOS]);
+
+      context.client.setQueryData<Todo[]>([QUERY_KEYS.TODOS], (old) => [
+        ...(old ?? []),
+        variables,
+      ]);
+
+      return { previousTodos };
+    },
+    onSettled: (newTodo, error, variables, onMutateResult, context) => {
+      if (error) {
+        context.client.setQueryData(
+          [QUERY_KEYS.TODOS],
+          onMutateResult?.previousTodos,
+        );
+        return;
+      }
+      context.client.invalidateQueries({ queryKey: [QUERY_KEYS.TODOS] });
+    },
   });
 };
 
@@ -44,7 +60,7 @@ export const useToggleTodo: () => UseMutationResult<
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: toggleTodo,
-    onSuccess: (newTodo) =>
+    onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TODOS] }),
   });
 };

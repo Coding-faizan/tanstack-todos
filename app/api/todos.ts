@@ -9,10 +9,9 @@ let todos: Todo[] = [
 export const fetchTodos = async (): Promise<Todo[]> =>
   new Promise((resolve) => setTimeout(() => resolve(todos), 300));
 
-export const addTodo = async (title: string): Promise<Todo> => {
-  const newTodo: Todo = { id: Date.now(), title, completed: false };
-  todos.push(newTodo);
-  return new Promise((resolve) => setTimeout(() => resolve(newTodo), 300));
+export const addTodo = async (todo: Todo): Promise<Todo> => {
+  todos.push(todo);
+  return new Promise((resolve) => setTimeout(() => resolve(todo), 300));
 };
 
 export async function toggleTodo(id: number): Promise<Todo> {
